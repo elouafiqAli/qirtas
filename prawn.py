@@ -4,7 +4,7 @@ import feedparser, facebook, urllib2
 	CONFIGURATION VARIABLES
 """
 
-graph = facebook.GraphAPI(access_token='CAACEdEose0cBABYWCQCnKVw7jWx4cIgjLxevsJRpKdwpuGN9MmwcZB6xWA0ZA0JizLflOvHMBGzpI0YD2fZCWY9klfqSN2o1c1gI6lRMMatvVM8jqX18J4nm05ZCQ2tKMpFV6v9pYrTSg8aXMepl0W7cZC5RRNFmkRXGOs5I5n9xZAgP0Gx5X271n50Yq14VTcNpyGbMZBYCwZDZD',version='2.3')
+graph = facebook.GraphAPI(access_token='CAACEdEose0cBABhWkYUvAb8LC5U8JvfZBhiqFz4XXPd3bWQAZBlPxXIrkwnJZCQhzv2YaK2PYZBb4D5Dl6IO0FdMO2MIKfp34hNZA1p7aqZCsK4SB64JKUjlZBh9vIMwDMXE2vnyLH1lMSvrAVihixuYlkZBQEx9ON0tPDNZB75ZA7rO4OBqIr7ZA0CH3ZArbhpM6bLjtknP0rjhggZDZD',version='2.3')
 d = feedparser.parse('https://www.facebook.com/feeds/notifications.php?id=1449493666&viewer=1449493666&key=AWgvVg1Dzzn1bEDO&format=rss20')
 
 _FQL_ = { 
@@ -97,7 +97,7 @@ def facebook_meta_data(link):
 	
 	for i in range(attributes_count,attributes_count+len(attributes_fields)):
 		link_data[attributes_fields[i-attributes_count]] = response[i].split('<')[1].split('>')[1]
-
+	
 	return link_data 
 
 if __name__ == "__main__":
