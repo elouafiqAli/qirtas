@@ -1,54 +1,96 @@
-import token, facebook_dialy as facebook
+import token
+import facebook_dialy as facebook
 import sys
-
+from util import DotNotation, objectify
 from collections import namedtuple
 
 users = ['me']
-test_token = 'CAACEdEose0cBAHmEZCYPlE6NWSZA1PEw3kuObONUJic4PKP4xRcJMXOcsZCXHAIFHQwgyYY8ZCM7cLLWV1s3DQZBZAAs0CTkiRDKCOQvdyyWQCxi62y5ggERcCdZAAmVXGIjZAp4VIWjdwnHUiILZCau2p1ZCRVRuVg2K8a5kVERn6w9FqUZAIPlHiBPuttah0kcN2uFVvRO2qHHwZDZD'
-
-
+test_token = 'CAACEdEose0cBAK4uR2OwqbKYIWthO5QizkffHHBZC14py3ueNx2JoocPQupQKNaiMkDZCTTEHZByecmgsyB4SZAZCbMSZC4ZAP6ZCZCUQgDc026hRS6hZAlurI81LNLp4XiOnQx6KrP788GByr73HvZAu20I11hkO2TwcZAeo899gOovgVZAMZBcKdfGZChXmuZBeckZCQ3yXZCtdrflrP9gZDZD'
 
 _fb_api_version = '2.4'
 graph = facebook.GraphAPI(test_token)
 
 
 def get_posts():
-	all_posts = []
-	posts = graph.get_pages('me','posts')
-	for post_list in posts: 
-		all_posts.extend(post_list.data)
-		
-	return all_posts
+    all_posts = []
+    posts = graph.get_pages('me', 'posts')
+
+    for post_list in posts:
+        all_posts.extend(post_list.data)
+
+    for post_ in all_posts[:10]:
+        post = Post(post_)
+        print post.get_counters()
+
+    return all_posts
 
 
-"""
-def get_post(id):
-	
-	UsersContributed = namedtuple('UsersContributed','likes comments tagged')
-	User = namedtuple('User','id name type count')
+def test_cnt():
+    all_posts = []
+    posts = graph.get_pages('me', 'posts')
+    for post_list in posts:
+        for post_ in post_list.data:
+            post = Post(post_)
+            print dir(post)
+            print post.get_counters()
+        break
 
-	users_contributed = UsersContributed(likes=[],commenters=[],tagged=[])
-
-
-	shares_ = graph.get_object(id,fields='shares')['shares']['count']
-	likes_ 	= graph.get_connections_paging(id,'likes')['data']
-	comments_ = graph.get_connections_paging(id,'comments')
-	
-	for like in likes_
-		users_contributed.likes.extend(like['data'])
-
-	
-	for comment_list in comments_:
-		for comment in comment_list['data']:
-
-			contributor_ = comment['from']
-			comment_ = graph.get_connections(comment['id'],fields='message_tags,likes_count,created_time')
-			user = User(id = contributor_['id'])
-			if contributor_ in users_contributed['commenters']:
-				users_contributed['commenters'][contributor]["comments_count"]
-
-			users_contributed[""]
-	
-"""
+    return all_posts
 
 
+class Post:
+   # @objectify
+    def get_counters(self):
+        self.shares_count = graph.get_object(self.id, fields='shares').shares.count or 0
+        self.likes_count = graph.get_connections(self.id, 'likes', summary='true').summary.total_count or 0
+        self.comments_count = graph.get_connections(self.id, 'comments', summary='true').summary.total_count or 0
+
+        counters = {'shares': self.shares_count, 'likes': self.likes_count, 'comments_count': self.comments_count}
+        return counters
+
+    def __init__(self, post):
+        self.id = post.id
+        self.message = post.message
+        self.created_time = post.created_time
+
+        return None
+
+    def __str__(self):
+        return self.id
+
+    @objectify
+    def get_contributors(self):
+
+        comments, commenters, tagged, likers = [], [], [], []
+
+        def get_likers():
+            likers = {}
+            like_pages = graph.get_pages(id, 'likes')
+            for like_list in like_pages:
+                likers.extend(like_list.data)
+            return likers
+
+        comments_pages = graph.get_pages(
+            id, 'comments', fields='like_count,message_tags,created_time,from')
+
+        for comments_list in comments_pages:
+            for comment in comments_list.data:
+                # add comment to the list
+                comments.extend(comment)
+
+                contributor = comment.from_
+                contributor.like_count = comment.like_count
+                contributor.created_time = comment.created_time
+
+                # maps an id with a specific user
+                commenters.append(contributor)
+            try:
+                tagged.extend(comment.message_tags)
+            except AttributeError as e:
+                pass
+
+        contributors = {'likers': get_likers(),
+                        'commenters': commenters,
+                        'tagged': tagged
+                        }
+        return contributors
