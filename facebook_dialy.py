@@ -27,7 +27,7 @@ class GraphAPI(facebook.GraphAPI):
             if 'next' in response['paging']:
                 next = response['paging']['next']
                 request = urlparse(next)
-                response = self.request(request['path'], parse_qs(request.query))
+                response = self.request(request.path, parse_qs(request.query))
                 yield response
             else:
                 break

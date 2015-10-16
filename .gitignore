@@ -7,3 +7,4 @@ dsc-cassandra-2.2.1/
 token.py
 facebook-sdk
 facebook
+.cache

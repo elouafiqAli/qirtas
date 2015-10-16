@@ -1,4 +1,4 @@
-__TESTING__ = True
+__TESTING__ = False
 import facebook_dialy as facebook
 import facebook as facebook_
 import re, testdata
@@ -7,7 +7,7 @@ import sys
 from collections import namedtuple
 
 users = ['me']
-test_token = 'CAACEdEose0cBACFVTFngOVlH3o1t2z7YksQQ9Us2fmHiZAojRk13gQWXgnVAMtW09lMwKq73pk5Vdi8HW9rxZBFRcZBUiZCuZBsZBvi352c97FihCrBf9o7lZAIAm86Q5l3cMEcFOU9w320twrSRq8HQsLLvuZAiRrmblc9ctxUyPZAOEAdDBKkV36VWcE14aV5qZCE0MAZB46n6AZDZD'
+test_token = 'CAACEdEose0cBAHZBZC0ShFJFMLN9mRMXUvw5MMhnqfnvsXQLUEqmSgnkCZCDTxf1ZC24ZAXeTCxcLOuj1h9nCydd7AcULyDRlEnyuktraGrm0tk2wZC9NLoFiBYuhiAGGgepAtFOmCIX2RAoy5CUAZCTMB6dMt5wmQgzxaoiITf6L0Rm8MNUQliH6xWOMGkMT0GJ853vElTRQZDZD'
 
 class TestingFacebook(facebook.GraphAPI):
 
@@ -45,77 +45,109 @@ def get_posts():
         all_posts.extend(post_list['data'])
 
     for post_ in all_posts[:10]:
-        post = Post(post_)
-        print post.get_counters()
+        if 'message' in post_:
+            post = Post(post_)
+            print post.get_counters()
 
     return all_posts
 
 
 class Post:
    # @objectify
-    def get_counters(self):
-        try:
-            shares_response = graph.get_object(self.id, fields='shares')
-            likes_response = graph.get_connections(self.id, 'likes', summary='true')
-            comments_response = graph.get_connections(self.id, 'comments', summary='true')
-        except Exception:
-            return {}
-        self.shares_count = shares_response['shares']['count'] if 'shares' in shares_response is True else 0
-        self.likes_count = likes_response['summary']['total_count'] if 'summary' in likes_response is True else 0
-        self.comments_count = comments_count['summary']['total_count'] if 'summary' in comments_count is True else 0
-
-        counters = {'shares': self.shares_count, 'likes': self.likes_count, 'comments_count': self.comments_count}
-        return counters
-
     def __init__(self, post):
+        print post
         self.id = post['id']
         self.message = post['message']
         self.created_time = post['created_time']
 
-        return None
-
-    def __str__(self):
-        return self.id
-
-    #@objectify
-    def get_contributors(self):
-
-        comments, commenters, tagged, likers = [], [], [], []
+    @property
+    def likes(self):
         try:
-            def get_likers():
+            return self.__likes
+        except AttributeError:
+            self.__likes = Likes(self)
+            return self.__likes
+
+    @property
+    def comments(self):
+        try:
+            return self.__comments
+        except AttributeError:
+            self.__comments = Comments(self)
+            return self.__comments
+
+    @property
+    def shares(self):
+        shares_response = graph.get_object(self.id, fields='shares')
+        if 'shares' in shares_response:
+            self.__shares = shares_response
+        else:
+            self.__shares = 0
+        return self.__shares
+
+
+class Likes:
+    def __init__(self,post):
+        self.post = post
+
+    @property
+    def likes(self):
+        def get_likers():
                 likers = []
-                like_pages = graph.get_pages(self.id, 'likes')
+                like_pages = graph.get_pages(self.post.id, 'likes')
                 for like_list in like_pages:
                     likers.extend(like_list['data'])
                 return likers
-            likers = get_likers()
-            comments_pages = graph.get_pages(
-                self.id, 'comments', fields='like_count,message_tags,created_time,from')
 
-            for comments_list in comments_pages:
-                for comment in comments_list['data']:
-                    # add comment to the list
-                    comments.append(comment)
+        self.__likes = get_likers()
 
-                    contributor = comment['from']
+    def __len__(self):
+        try:
+            return len(self.__likes)
+        except AttributeError:
+            likes = graph.get_connections(self.id, 'likes', summary='true')
+            if 'summary' in likes:
+                return likes['summary']['total_count']
+            else:
+                return 0
 
-                    contributor['like_count'] = comment['like_count']
-                    contributor['created_time'] = comment['created_time']
-                    print contributor
-                    # maps an id with a specific user
-                    commenters.append(contributor)
-                    try:
-                        tagged.extend(comment['message_tags'])
-                    except KeyError as e:
-                        pass
-        except Exception:
-            return {}
-        contributors = {'likers': likers,
-                        'commenters': commenters,
-                        'comments': comments,
-                        'tagged': tagged
-                        }
-        return contributors
+
+class Comments:
+    def __init__(self,post_id):
+
+        comments, commenters, tagged = [], [], []
+        comments_pages = graph.get_pages(
+            self.id, 'comments', fields='like_count,message_tags,created_time,from')
+
+        for comments_list in comments_pages:
+            for comment in comments_list['data']:
+
+                comments.append(comment)
+                contributor = comment['from']
+                contributor['like_count'] = comment['like_count']
+                contributor['created_time'] = comment['created_time']
+                commenters.append(contributor)
+
+                try:
+                    tagged.extend(comment['message_tags'])
+                except KeyError:
+                    pass
+
+        users = {}
+        for user in commenters:
+            if user['id'] in users:
+                users[user['id']] = user['id']
+                users['like_count'] += user['like_count']
+                users['comments'] += 1
+            else:
+                users[user['id']] = user
+                users['comments'] = 1
+
+        self.comments = comments
+        self.users = users
+        self.mentioned = tagged
+
+
 
 
 def test_cnt():
@@ -123,9 +155,10 @@ def test_cnt():
     posts = graph.get_pages('me', 'posts')
     for post_list in posts:
         for post_ in post_list['data']:
-            post = Post(post_)
-            print post.get_contributors()
-
+            if 'message' in post_:
+                post = Post(post_)
+                likes = post.likes
+                print len(likes)
         break
 
     return all_posts
