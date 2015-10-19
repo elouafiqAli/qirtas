@@ -1,3 +1,7 @@
+from __future__ import division
+from math import sqrt, pow
+
+
 __TESTING__ = False
 import facebook_dialy as facebook
 import facebook as facebook_
@@ -7,7 +11,7 @@ import sys
 from collections import namedtuple
 
 users = ['me']
-test_token = 'CAACEdEose0cBAPWpUmQS7z8w1jcGjKsGcE4r7qVsLS4UmZCOA2Ofx2KRZCEsJmXkwKmSx9iszFrrLhb9Vz3VfjB4mYi4Uqt1OZAkfqrI2ZBatC6Mi7v16yH7680zdBsJVUj9QFTJfGZAZAHSSu5cpETX8IE9lON2ITs9B9P4N6JmZBC1W2hdWKafpMzTH1MEVTF4qrtVZAdsVgZDZD'
+test_token = 'CAACEdEose0cBABoeXft8vsDJ8xaZBqrePCEAy98i70xLz9TevO6I99Jkakz5d8kfjx4YcZCttVb3HAZCZA5BLRExm8bZBcZAPmDsp2HaBfZCTrE2Iwn4HH1ZAzSmKlOWKEnqM6D87Rsm5S0mkwmVdgbAuWc506ScZCUdRv7uTnLrHUvLtgXtZB5kZBxEsyrdvYZAKQQM0gydOzkYkAZDZD'
 
 class TestingFacebook(facebook.GraphAPI):
 
@@ -57,8 +61,10 @@ class Post:
     def __init__(self, post):
         print post
         self.id = post['id']
-        self.message = post['message']
-        self.created_time = post['created_time']
+
+        if 'privacy' in post: self.__privacy = post['privacy']['value']
+        if 'shares' in post: self.__shares = post['shares']['count']
+
 
     @property
     def likes(self):
@@ -80,7 +86,7 @@ class Post:
     def shares(self):
         shares_response = graph.get_object(self.id, fields='shares')
         if 'shares' in shares_response:
-            self.__shares = shares_response
+            self.__shares = shares_response['shares']['count']
         else:
             self.__shares = 0
         return self.__shares
@@ -98,8 +104,46 @@ class Post:
                 if attribute in post_mentions:
                     self.__mentions.extend(post_mentions[attribute])
             return self.__mentions
+    @property
+    def privacy(self):
+        try:
+            return self.__privacy
+        except AttributeError:
+            self.__privacy = graph.get_object(self.id,fields='privacy')['privacy']['value']
+            return self.__privacy
 
-    
+    @property
+    def all_friends(self):
+        try:
+            return self.__friends
+        except AttributeError:
+            friends = graph.get_connections('me','friends',summary='true')
+            self.__friends = friends['summary']['total_count']
+            return self.__friends
+
+
+    @property
+    def reach(self):
+
+        LIKES = len(self.likes)
+        SHARES = self.shares
+        UNIQUE_COMMENTS = len(self.comments.users)
+        USERS_MENTIONED = len(self.mentions)
+        FRIENDS = self.all_friends
+        print 'UNIQUE_COMMENTS ',UNIQUE_COMMENTS,' USERS_MENTIONED ',USERS_MENTIONED,' LIKES ',LIKES, ' SHARES ',SHARES
+        STICKINESS = sqrt( ( UNIQUE_COMMENTS + USERS_MENTIONED ) * LIKES / 7 )+ sqrt( SHARES * LIKES + SHARES ** 2 )
+        REACH = 0
+
+        if UNIQUE_COMMENTS is 0:
+            REACH = (LIKES+USERS_MENTIONED)*16+ SHARES*33
+        else:
+            REACH = (LIKES+USERS_MENTIONED)*8 + (FRIENDS-LIKES) * pow(2, - 33 / STICKINESS )
+        if self.privacy is 'EVERYONE':
+            return REACH
+        else:
+            if REACH > FRIENDS: return FRIENDS
+            else: return REACH
+
 
 
 class Likes:
@@ -170,14 +214,12 @@ class Comments:
 def test_cnt():
     all_posts = []
     print 'getting connection'
-    posts = graph.get_pages('me', 'posts')
+    posts = graph.get_pages('me', 'posts',fields='privacy,shares')
     print '--->>'
     for post_list in posts:
         for post_ in post_list['data']:
-            if 'message' in post_:
-                post = Post(post_)
-                #likes = post.likes
-                print post.mentions
+            post = Post(post_)
+            print post.reach
 
         break
 
