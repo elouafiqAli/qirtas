@@ -7,7 +7,7 @@ import sys
 from collections import namedtuple
 
 users = ['me']
-test_token = 'CAACEdEose0cBAHZBZC0ShFJFMLN9mRMXUvw5MMhnqfnvsXQLUEqmSgnkCZCDTxf1ZC24ZAXeTCxcLOuj1h9nCydd7AcULyDRlEnyuktraGrm0tk2wZC9NLoFiBYuhiAGGgepAtFOmCIX2RAoy5CUAZCTMB6dMt5wmQgzxaoiITf6L0Rm8MNUQliH6xWOMGkMT0GJ853vElTRQZDZD'
+test_token = 'CAACEdEose0cBAPWpUmQS7z8w1jcGjKsGcE4r7qVsLS4UmZCOA2Ofx2KRZCEsJmXkwKmSx9iszFrrLhb9Vz3VfjB4mYi4Uqt1OZAkfqrI2ZBatC6Mi7v16yH7680zdBsJVUj9QFTJfGZAZAHSSu5cpETX8IE9lON2ITs9B9P4N6JmZBC1W2hdWKafpMzTH1MEVTF4qrtVZAdsVgZDZD'
 
 class TestingFacebook(facebook.GraphAPI):
 
@@ -92,20 +92,22 @@ class Likes:
 
     @property
     def likes(self):
+
         def get_likers():
-                likers = []
-                like_pages = graph.get_pages(self.post.id, 'likes')
-                for like_list in like_pages:
-                    likers.extend(like_list['data'])
-                return likers
+            likers = []
+            like_pages = graph.get_pages(self.post.id, 'likes')
+            for like_list in like_pages:
+                likers.extend(like_list['data'])
+            return likers
 
         self.__likes = get_likers()
+        return self.__likes
 
     def __len__(self):
         try:
             return len(self.__likes)
         except AttributeError:
-            likes = graph.get_connections(self.id, 'likes', summary='true')
+            likes = graph.get_connections(self.post.id, 'likes', summary='true')
             if 'summary' in likes:
                 return likes['summary']['total_count']
             else:
@@ -113,11 +115,11 @@ class Likes:
 
 
 class Comments:
-    def __init__(self,post_id):
-
+    def __init__(self,post):
+        self.post = post
         comments, commenters, tagged = [], [], []
         comments_pages = graph.get_pages(
-            self.id, 'comments', fields='like_count,message_tags,created_time,from')
+            self.post.id, 'comments', fields='like_count,message_tags,created_time,from')
 
         for comments_list in comments_pages:
             for comment in comments_list['data']:
@@ -135,13 +137,13 @@ class Comments:
 
         users = {}
         for user in commenters:
-            if user['id'] in users:
-                users[user['id']] = user['id']
-                users['like_count'] += user['like_count']
-                users['comments'] += 1
+            id = user['id']
+            if id in users:
+                users[id]['like_count'] += user['like_count']
+                users[id]['comments'] += 1
             else:
-                users[user['id']] = user
-                users['comments'] = 1
+                users[id] = user
+                users[id]['comments'] = 1
 
         self.comments = comments
         self.users = users
@@ -152,13 +154,16 @@ class Comments:
 
 def test_cnt():
     all_posts = []
+    print 'getting connection'
     posts = graph.get_pages('me', 'posts')
+    print '--->>'
     for post_list in posts:
         for post_ in post_list['data']:
             if 'message' in post_:
                 post = Post(post_)
-                likes = post.likes
-                print len(likes)
+                #likes = post.likes
+                comments = post.comments
+                print comments.__dict__
         break
 
     return all_posts
