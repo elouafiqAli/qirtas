@@ -1,5 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import facebook
+class TestingFacebook(facebook.GraphAPI):
+
+    def cached_paths(self,path):
+        cache = {
+                "%s/%s/%s" % (self.version, '(.*)','posts') : test_feed,
+                "%s/%s/%s" % (self.version, '(.*)','comments') : test_comments
+        }
+
+        for test_path in cache:
+            if re.match(test_path,path):
+                return cache[test_path]
+        raise Exception(path)
+
+    def request(self,*args, **kargs):
+        path = args[0]
+        try:
+            result = self.cached_paths(path)
+            return result
+        except Exception:
+            return super(TestingFacebook,self).request(path,kargs)
+
 test_comments = {
   "data": [
     {
