@@ -85,6 +85,22 @@ class Post:
             self.__shares = 0
         return self.__shares
 
+    @property
+    def mentions(self):
+        try:
+            return self.__mentions
+        except AttributeError:
+            self.__mentions = self.comments.mentions
+
+            mention_attributes = ['message_tags','story_tags']
+            post_mentions = graph.get_object(self.id,fields=','.join(mention_attributes))
+            for attribute in mention_attributes:
+                if attribute in post_mentions:
+                    self.__mentions.extend(post_mentions[attribute])
+            return self.__mentions
+
+    
+
 
 class Likes:
     def __init__(self,post):
@@ -147,8 +163,7 @@ class Comments:
 
         self.comments = comments
         self.users = users
-        self.mentioned = tagged
-
+        self.mentions = tagged
 
 
 
@@ -162,8 +177,8 @@ def test_cnt():
             if 'message' in post_:
                 post = Post(post_)
                 #likes = post.likes
-                comments = post.comments
-                print comments.__dict__
+                print post.mentions
+
         break
 
     return all_posts
