@@ -1,14 +1,12 @@
-from __future__ import division
-from math import sqrt, pow
 import facebook_dialy as facebook
+from analysis import reach_estimation, reach_ratio
 
-all_friends = 0
 
 class User:
-    def __init__(self,session_token):
+    def __init__(self, session_token):
         global graph, all_friends
         graph = facebook.GraphAPI(session_token)
-        all_friends = graph.get_connections('me','friends',summary='true')['summary']['total_count']
+        all_friends = graph.get_connections('me', 'friends', summary='true')['summary']['total_count']
 
     @property
     def posts(self):
@@ -16,12 +14,19 @@ class User:
             return self.__posts
         except AttributeError:
             self.__posts = []
-            posts = graph.get_pages('me', 'posts',fields='privacy,shares')
+            posts = graph.get_pages('me', 'posts', fields='privacy,shares')
             for post_list in posts:
                 for post in post_list['data']:
                     self.__posts.append(Post(post))
                 break
             return self.__posts
+
+    @property
+    def reach(self):
+        sorted_posts = sorted(self.posts, key = Post.reach, reverse =  True)
+        top_elements = [post.reach() for post in sorted_posts[:7]]
+        ratio = reach_ratio(top_elements)
+        return ratio
 
 
 class Post:
@@ -63,8 +68,8 @@ class Post:
         except AttributeError:
             self.__mentions = self.comments.mentions
 
-            mention_attributes = ['message_tags','story_tags']
-            post_mentions = graph.get_object(self.id,fields=','.join(mention_attributes))
+            mention_attributes = ['message_tags', 'story_tags']
+            post_mentions = graph.get_object(self.id, fields=','.join(mention_attributes))
             for attribute in mention_attributes:
                 if attribute in post_mentions:
                     self.__mentions.extend(post_mentions[attribute])
@@ -75,34 +80,20 @@ class Post:
         try:
             return self.__privacy
         except AttributeError:
-            self.__privacy = graph.get_object(self.id,fields='privacy')['privacy']['value']
+            self.__privacy = graph.get_object(self.id, fields='privacy')['privacy']['value']
             return self.__privacy
 
-    @property
+
     def reach(self):
-
-        LIKES = len(self.likes)
-        SHARES = self.shares
-        UNIQUE_COMMENTS = len(self.comments.users)
-        USERS_MENTIONED = len(self.mentions)
-        FRIENDS = all_friends
-        STICKINESS = sqrt( ( UNIQUE_COMMENTS + USERS_MENTIONED ) * LIKES / 7 )+ sqrt( SHARES * LIKES + SHARES ** 2 )
-        REACH = 0
-
-        if UNIQUE_COMMENTS is 0:
-            REACH = (LIKES+USERS_MENTIONED)*16+ SHARES*33
-        else:
-            REACH = (LIKES+USERS_MENTIONED)*8 + (FRIENDS-LIKES) * pow(2, - 33 / STICKINESS )
-
-        if self.privacy is 'EVERYONE':
-            return REACH
-        else:
-            if REACH > FRIENDS: return FRIENDS
-            else: return REACH
+        estimation =  reach_estimation(unique_comments = len(self.comments.users), users_mentioned=len(self.mentions),
+                                friends = all_friends, likes = len(self.likes), shares=self.shares,
+                                privacy = self.privacy)
+        print estimation
+        return estimation
 
 
 class Likes:
-    def __init__(self,post):
+    def __init__(self, post):
         self.post = post
 
     @property
@@ -130,7 +121,7 @@ class Likes:
 
 
 class Comments:
-    def __init__(self,post):
+    def __init__(self, post):
         self.post = post
         comments, commenters, tagged = [], [], []
         comments_pages = graph.get_pages(
@@ -163,6 +154,3 @@ class Comments:
         self.comments = comments
         self.users = users
         self.mentions = tagged
-
-
-

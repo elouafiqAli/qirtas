@@ -1,18 +1,14 @@
 from user import User
 
-test_token = 'CAACEdEose0cBAM2mct5BixCE8tTQrAWNiwCZACAyibwepuZA3L1ll5sUJHnbBBjjmqkct8cX2TAQYV2QwIlZATy3O4txVPePS5T94cpy1oCffL4EJ6JVUj0zqorV1ZCOfnlgUfKXb52JZCAjiblTLSZAMX9pt0o9HZA47AtOrLqIpZAImYWSIHGfEezfdMyyA58iRBnaMQ2QDgZDZD'
+test_token = 'CAACEdEose0cBALKXp9tpyDrftZAWOFLZAB0go51N6O9qgCAyliSPsfNv93XiFGEmbsmMmXf7SOTWaeaPUwjhB6fBmCVJKqlx3H3mL2GASEnCUWqNhT8YZBE20piyadejU2eTVpOHVhpZAUpih1KrS7M6sRcqbZAyVexdkSstjG6OMBI4lYg4JJyTEZBpeF3wv9uftSTd5jeQZDZD'
+
 
 def test_session():
-    print '-- initilizing user'
+    print ' -- initalizing user'
     test_user = User(test_token)
-    print '-- getting posts'
-    posts = test_user.posts
-    print '-- computing reach for each post'
-    reach_list = [post.reach for post in posts]
-    print '-- sorting the list'
-    sorted_posts = sorted( reach_list , reverse = True)
-    for r in sorted_posts:
-        print ' :: ' , r
+
+    print test_user.reach
+
 
 if __name__ == '__main__':
     test_session()
