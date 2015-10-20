@@ -1,14 +1,13 @@
-from user import User
+import decay
 
-test_token = 'CAACEdEose0cBALKXp9tpyDrftZAWOFLZAB0go51N6O9qgCAyliSPsfNv93XiFGEmbsmMmXf7SOTWaeaPUwjhB6fBmCVJKqlx3H3mL2GASEnCUWqNhT8YZBE20piyadejU2eTVpOHVhpZAUpih1KrS7M6sRcqbZAyVexdkSstjG6OMBI4lYg4JJyTEZBpeF3wv9uftSTd5jeQZDZD'
+test_token = 'CAACEdEose0cBAAZC5hZBuURm5uyR0D553JUJKMAkr6rB59PSq1qk8s7oZBOfc29xCBnnGiqeRdUVEaJY9scn8UjZA6mzXiEvtcY47I6zA0VIyizXgBwOE0IFUN6ByZCinI3K4ZAfGLs0ZAKNfBxfNHyEEjpvpN4oYrl3xpL04QEh02OSh7XbuTNSLmSPV61KwB5nTx8t57nRgZDZD'
 
 
-def test_session():
-    print ' -- initalizing user'
-    test_user = User(test_token)
-
-    print test_user.reach
-
+def test_session(test_token):
+    decay.app.debug = True
+    client = decay.app.test_client()
+    response = client.get('/reach?access_token='+test_token)
+    print response.data
 
 if __name__ == '__main__':
-    test_session()
+    test_session(test_token)

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import facebook
+import re
 class TestingFacebook(facebook.GraphAPI):
 
     def cached_paths(self,path):

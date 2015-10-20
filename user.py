@@ -3,10 +3,10 @@ from analysis import reach_estimation, reach_ratio
 
 
 class User:
+
     def __init__(self, session_token):
-        global graph, all_friends
-        graph = facebook.GraphAPI(session_token)
-        all_friends = graph.get_connections('me', 'friends', summary='true')['summary']['total_count']
+        self.graph = facebook.GraphAPI(session_token)
+        self.all_friends = self.graph.get_connections('me', 'friends', summary='true')['summary']['total_count']
 
     @property
     def posts(self):
@@ -14,10 +14,10 @@ class User:
             return self.__posts
         except AttributeError:
             self.__posts = []
-            posts = graph.get_pages('me', 'posts', fields='privacy,shares')
+            posts = self.graph.get_pages('me', 'posts', fields='privacy,shares')
             for post_list in posts:
                 for post in post_list['data']:
-                    self.__posts.append(Post(post))
+                    self.__posts.append(Post(post,self))
                 break
             return self.__posts
 
@@ -30,7 +30,9 @@ class User:
 
 
 class Post:
-    def __init__(self, post):
+    def __init__(self, post, parent):
+        self.graph = parent.graph
+        self.parent = parent
         self.id = post['id']
 
         if 'privacy' in post: self.__privacy = post['privacy']['value']
@@ -54,7 +56,7 @@ class Post:
 
     @property
     def shares(self):
-        shares_response = graph.get_object(self.id, fields='shares')
+        shares_response = self.graph.get_object(self.id, fields='shares')
         if 'shares' in shares_response:
             self.__shares = shares_response['shares']['count']
         else:
@@ -69,7 +71,7 @@ class Post:
             self.__mentions = self.comments.mentions
 
             mention_attributes = ['message_tags', 'story_tags']
-            post_mentions = graph.get_object(self.id, fields=','.join(mention_attributes))
+            post_mentions = self.graph.get_object(self.id, fields=','.join(mention_attributes))
             for attribute in mention_attributes:
                 if attribute in post_mentions:
                     self.__mentions.extend(post_mentions[attribute])
@@ -80,28 +82,28 @@ class Post:
         try:
             return self.__privacy
         except AttributeError:
-            self.__privacy = graph.get_object(self.id, fields='privacy')['privacy']['value']
+            self.__privacy = self.graph.get_object(self.id, fields='privacy')['privacy']['value']
             return self.__privacy
 
 
     def reach(self):
         estimation =  reach_estimation(unique_comments = len(self.comments.users), users_mentioned=len(self.mentions),
-                                friends = all_friends, likes = len(self.likes), shares=self.shares,
+                                friends = self.parent.all_friends, likes = len(self.likes), shares=self.shares,
                                 privacy = self.privacy)
-        print estimation
         return estimation
 
 
 class Likes:
     def __init__(self, post):
         self.post = post
+        self.graph = post.graph
 
     @property
     def likes(self):
 
         def get_likers():
             likers = []
-            like_pages = graph.get_pages(self.post.id, 'likes')
+            like_pages = self.graph.get_pages(self.post.id, 'likes')
             for like_list in like_pages:
                 likers.extend(like_list['data'])
             return likers
@@ -113,7 +115,7 @@ class Likes:
         try:
             return len(self.__likes)
         except AttributeError:
-            likes = graph.get_connections(self.post.id, 'likes', summary='true')
+            likes = self.graph.get_connections(self.post.id, 'likes', summary='true')
             if 'summary' in likes:
                 return likes['summary']['total_count']
             else:
@@ -123,8 +125,9 @@ class Likes:
 class Comments:
     def __init__(self, post):
         self.post = post
+        self.graph = post.graph
         comments, commenters, tagged = [], [], []
-        comments_pages = graph.get_pages(
+        comments_pages = self.graph.get_pages(
             self.post.id, 'comments', fields='like_count,message_tags,created_time,from')
 
         for comments_list in comments_pages:
