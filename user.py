@@ -5,7 +5,7 @@ from analysis import reach_estimation, reach_ratio
 class User:
 
     def __init__(self, session_token):
-        self.graph = facebook.GraphAPI(session_token)
+        self.graph = facebook.CachedGraphAPI(session_token)
         self.all_friends = self.graph.get_connections('me', 'friends', summary='true')['summary']['total_count']
 
     @property

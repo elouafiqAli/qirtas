@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import facebook
 import re
+test_token = 'CAACEdEose0cBAPLxgRWM1ZB5iR7EbtLp8WLjzJEuGeYjZBmicmsjpgdxDZCLetZBQeYTWUKqsGF0UBoFQq9qhZBtZCvPxffZCeBlRbwCgcSfZCJ0Jvpw5LV8IkUyGVRExPsLt2q1EEolMllN8d2RDZAkRNoZA0BuYNXmjHYJFNoRq2aTGmQDajZBEzfos1BNdd0WpZALyxwwSUJmLwZDZD'
+
 class TestingFacebook(facebook.GraphAPI):
 
     def cached_paths(self,path):
@@ -22,6 +24,7 @@ class TestingFacebook(facebook.GraphAPI):
             return result
         except Exception:
             return super(TestingFacebook,self).request(path,kargs)
+
 
 test_comments = {
   "data": [
@@ -270,6 +273,7 @@ test_feed = {
   }
 }
 
+
 test_comment = {
   "data": [
     {
@@ -369,4 +373,9 @@ test_comment = {
       "before": "WTI5dGJXVnVkRjlqZFhKemIzSTZNVEF5TURZMU5ETTFNekUyTVRReU5ETTZNVFF6TmpFeU9ERTROQT09"
     }
   }
+}
+test_data = {
+  'path': '/v2.5/me/posts',
+  'request': {},
+  'response': test_comment
 }

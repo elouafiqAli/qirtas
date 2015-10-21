@@ -3,12 +3,12 @@
 
 import facebook
 from urlparse import urlparse, parse_qs
+from cache import CacheRequests
 
 
 class GraphAPI(facebook.GraphAPI):
-
     def __init__(self, access_token):
-
+        self.request = CacheRequests(self.request)
         super(GraphAPI, self).__init__(access_token, version='2.5')
 
     def get_pages(self, id, connection_name, **args):
@@ -25,3 +25,4 @@ class GraphAPI(facebook.GraphAPI):
                 yield response
             else:
                 break
+
