@@ -1,5 +1,5 @@
 from flask import Flask, request
-from user import User
+from users import User
 
 app = Flask(__name__)
 
@@ -13,11 +13,13 @@ def index():
 def reach():
 
     session_token = request.args.get('access_token')
+    user = User(session_token)
+    return "{\n\t'reach' : " + str(user.reach) + "\n}"
     try:
         user = User(session_token)
         return "{\n\t'reach' : " + str(user.reach) + "\n}"
     except Exception as e:
-        return "{\n\t'error' : '" + e.message + "'\n}"
+        raise e
 
 
 if __name__ == "__main__":

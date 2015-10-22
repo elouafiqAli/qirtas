@@ -3,12 +3,14 @@
 
 import facebook
 from urlparse import urlparse, parse_qs
-from cache import CacheRequests
+from cache import cache_request
 
+__default_cache__ = 'cacheDB'
 
 class GraphAPI(facebook.GraphAPI):
-    def __init__(self, access_token):
-        self.request = CacheRequests(self.request)
+    def __init__(self, access_token, caching = True, cache_database = __default_cache__):
+        if caching == True:
+            self.request = cache_request(self.request,cache_database)
         super(GraphAPI, self).__init__(access_token, version='2.5')
 
     def get_pages(self, id, connection_name, **args):
@@ -26,3 +28,9 @@ class GraphAPI(facebook.GraphAPI):
             else:
                 break
 
+
+def CachedGraphAPI(token):
+
+    cached_graph_api  = GraphAPI(token)
+    cached_graph_api.request = cache_request(cached_graph_api.request)
+    return cached_graph_api

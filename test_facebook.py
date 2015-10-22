@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import facebook
 import re
-test_token = 'CAACEdEose0cBAPLxgRWM1ZB5iR7EbtLp8WLjzJEuGeYjZBmicmsjpgdxDZCLetZBQeYTWUKqsGF0UBoFQq9qhZBtZCvPxffZCeBlRbwCgcSfZCJ0Jvpw5LV8IkUyGVRExPsLt2q1EEolMllN8d2RDZAkRNoZA0BuYNXmjHYJFNoRq2aTGmQDajZBEzfos1BNdd0WpZALyxwwSUJmLwZDZD'
+test_token = 'CAACEdEose0cBAM0ayGuNT5x5XluhafXblgQkMsBfE0ZA9H92C1jAO15lVG3S28DO8JJ5JCaT5zqUtuZAGWwKLKNQHsal6p5JMDprS7AMIRhCZApKZCuRc5I53T1kh3xcs0gxy2bDZAQCNPmjZBOi1K1bk90sZBO9vYYtSazfsi1x6ZAug08cJgXH3QuR2gXhF4XKYoa7Ymbw4QZDZD'
 
 class TestingFacebook(facebook.GraphAPI):
 
@@ -375,7 +375,7 @@ test_comment = {
   }
 }
 test_data = {
-  'path': '/v2.5/me/posts',
+  'path': '/v2.5/19999/posts',
   'request': {},
   'response': test_comment
 }

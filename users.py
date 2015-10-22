@@ -1,12 +1,34 @@
 import facebook_dialy as facebook
 from analysis import reach_estimation, reach_ratio
 
+__caching__ = True
+__cache_database__ = 'cacheDB'
 
 class User:
 
     def __init__(self, session_token):
-        self.graph = facebook.CachedGraphAPI(session_token)
-        self.all_friends = self.graph.get_connections('me', 'friends', summary='true')['summary']['total_count']
+        self.graph = facebook.GraphAPI(session_token, caching = __caching__, cache_database=__cache_database__)
+        me =  self.graph.get_object('me')
+        self.id,self.name = me['id'], me['name']
+        self.all_friends = self.graph.get_connections(self.id, 'friends', summary='true')['summary']['total_count']
+
+
+    def counted_posts(self, ran = -1):
+        try:
+            ran_ = len(self.__posts) if ran == -1 else ran
+            return self.__posts[:ran_]
+        except:
+            self.__posts = []
+            ran_counter = 0
+            posts = self.graph.get_pages(self.id, 'posts', fields='privacy,shares')
+            for post_list in posts:
+                for post in post_list['data']:
+                    self.__posts.append(Post(post,self))
+                    ran_counter += 1
+                    if ran == ran_counter:
+                        break
+
+            return self.__posts
 
     @property
     def posts(self):
@@ -14,7 +36,7 @@ class User:
             return self.__posts
         except AttributeError:
             self.__posts = []
-            posts = self.graph.get_pages('me', 'posts', fields='privacy,shares')
+            posts = self.graph.get_pages(self.id, 'posts', fields='privacy,shares')
             for post_list in posts:
                 for post in post_list['data']:
                     self.__posts.append(Post(post,self))
@@ -82,7 +104,9 @@ class Post:
         try:
             return self.__privacy
         except AttributeError:
-            self.__privacy = self.graph.get_object(self.id, fields='privacy')['privacy']['value']
+            answer = self.graph.get_object(self.id, fields='privacy')
+            print answer
+            self.__privacy = answer['privacy']['value']
             return self.__privacy
 
 
@@ -135,8 +159,9 @@ class Comments:
 
                 comments.append(comment)
                 contributor = comment['from']
-                contributor['like_count'] = comment['like_count']
-                contributor['created_time'] = comment['created_time']
+                if 'like_count' in contributor:
+                    contributor['like_count'] = comment['like_count']
+                    contributor['created_time'] = comment['created_time']
                 commenters.append(contributor)
 
                 try:
