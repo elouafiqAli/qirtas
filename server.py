@@ -1,8 +1,9 @@
 from flask import Flask, request
-from users import User
+import users
 
 app = Flask(__name__)
-
+users.__caching__ = True
+users.__cache_database__ = 'cacheDB'
 
 @app.route("/")
 def index():
@@ -13,7 +14,7 @@ def index():
 def reach():
 
     session_token = request.args.get('access_token')
-    user = User(session_token)
+    user = users.User(session_token)
     return "{\n\t'reach' : " + str(user.reach) + "\n}"
     try:
         user = User(session_token)

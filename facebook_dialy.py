@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import facebook
+import facebook_edge
 from urlparse import urlparse, parse_qs
 from cache import cache_request
 
 __default_cache__ = 'cacheDB'
 
-class GraphAPI(facebook.GraphAPI):
+class GraphAPI(facebook_edge.GraphAPI):
     def __init__(self, access_token, caching = True, cache_database = __default_cache__):
         if caching == True:
             self.request = cache_request(self.request,cache_database)

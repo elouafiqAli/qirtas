@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import facebook
+import facebook_edge
 import re
 test_token = 'CAACEdEose0cBAM0ayGuNT5x5XluhafXblgQkMsBfE0ZA9H92C1jAO15lVG3S28DO8JJ5JCaT5zqUtuZAGWwKLKNQHsal6p5JMDprS7AMIRhCZApKZCuRc5I53T1kh3xcs0gxy2bDZAQCNPmjZBOi1K1bk90sZBO9vYYtSazfsi1x6ZAug08cJgXH3QuR2gXhF4XKYoa7Ymbw4QZDZD'
 
-class TestingFacebook(facebook.GraphAPI):
+class TestingFacebook(facebook_edge.GraphAPI):
 
     def cached_paths(self,path):
         cache = {
