@@ -173,11 +173,13 @@ class Comments:
         for user in commenters:
             id = user['id']
             if id in users:
-                users[id]['like_count'] += user['like_count']
+                if 'like_count' in user:
+                    users[id]['like_count'] += user['like_count']
                 users[id]['comments'] += 1
             else:
                 users[id] = user
                 users[id]['comments'] = 1
+                users[id]['like_count'] = 0
 
         self.comments = comments
         self.users = users

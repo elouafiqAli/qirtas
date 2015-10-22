@@ -55,7 +55,7 @@ def test_user_scenario():
     test_database = getattr(cache.client,users.__cache_database__)
     getattr(test_database,_collection).drop()
     test_user = users.User(test_token)
-    print test_user.counted_posts(10)
+    print test_user.reach
 
 
 if __name__ == '__main__':

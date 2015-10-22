@@ -10,9 +10,6 @@ def _key(path,request):
 
 
 def find_cache(path, request, collection='graph_api'):
-    print 'find into cache'
-    print path, request
-
     if 'access_token' in request:
         del request['access_token']
     graph_api_cache = getattr(database, collection)
@@ -26,8 +23,6 @@ def find_cache(path, request, collection='graph_api'):
 
 
 def save_cache(path, request, response, collection='graph_api'):
-    print 'saving into cache'
-    print path, request, response
     if 'access_token' in request:
         del request['access_token']
     graph_api_cache = getattr(database, collection)
