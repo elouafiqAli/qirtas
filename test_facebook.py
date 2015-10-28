@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 import facebook_edge
 import re
-test_token = 'CAACEdEose0cBAM0ayGuNT5x5XluhafXblgQkMsBfE0ZA9H92C1jAO15lVG3S28DO8JJ5JCaT5zqUtuZAGWwKLKNQHsal6p5JMDprS7AMIRhCZApKZCuRc5I53T1kh3xcs0gxy2bDZAQCNPmjZBOi1K1bk90sZBO9vYYtSazfsi1x6ZAug08cJgXH3QuR2gXhF4XKYoa7Ymbw4QZDZD'
+test_token = 'CAACEdEose0cBAPXZCwFxqx05Ne4Jh4O9ndQd0cXVBwae7HoiYaFLc7DhuDHal4kDnSRXXhYGA5KNu1errpONvbiXYtIkBhphqQbOGQMW0dkIhYeEAIOXHdv2tl9EHZB8nkCcMOcDhIIsqKUly2SCPsmEGhKDmOzRhD04J0x1YpUi7CM2nscAZBj0gLimMwK4YE7lxLk6gZDZD'
+
 
 class TestingFacebook(facebook_edge.GraphAPI):
 

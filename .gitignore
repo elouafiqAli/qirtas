@@ -8,3 +8,5 @@ token.py
 facebook-sdk
 facebook_edge
 .cache
+website
+logger

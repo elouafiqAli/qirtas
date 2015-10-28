@@ -4,16 +4,15 @@ from analysis import reach_estimation, reach_ratio
 __caching__ = True
 __cache_database__ = 'cacheDB'
 
-class User:
 
+class User:
     def __init__(self, session_token):
         self.graph = facebook.GraphAPI(session_token, caching = __caching__, cache_database=__cache_database__)
         me =  self.graph.get_object('me')
         self.id,self.name = me['id'], me['name']
         self.all_friends = self.graph.get_connections(self.id, 'friends', summary='true')['summary']['total_count']
 
-
-    def counted_posts(self, ran = -1):
+    def counted_posts(self, ran = 0):
         try:
             ran_ = len(self.__posts) if ran == -1 else ran
             return self.__posts[:ran_]
@@ -24,10 +23,9 @@ class User:
             for post_list in posts:
                 for post in post_list['data']:
                     self.__posts.append(Post(post,self))
-                    ran_counter += 1
                     if ran == ran_counter:
                         break
-
+                    ran_counter += 1
             return self.__posts
 
     @property
@@ -40,7 +38,7 @@ class User:
             for post_list in posts:
                 for post in post_list['data']:
                     self.__posts.append(Post(post,self))
-                break
+                #break
             return self.__posts
 
     @property
@@ -49,6 +47,15 @@ class User:
         top_elements = [post.reach() for post in sorted_posts[:7]]
         ratio = reach_ratio(top_elements)
         return ratio
+
+    def top_posts(self, limit = 0):
+        _top_posts = sorted(self.counted_posts(limit), key = Post.reach, reverse =  True)
+        return _top_posts
+
+    def first_posts(self, limit = 0):
+        sorted_posts = sorted(self.posts, key = Post.reach, reverse = True)
+        _first_posts = sorted_posts[:limit]
+        return _first_posts
 
 
 class Post:
